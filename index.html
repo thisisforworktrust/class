@@ -2,123 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>School Schedule Timer</title>
+<title>School Schedule Timer — Blue & Purple MAXED UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   body {
     font-family: "Poppins", sans-serif;
-    background: #0e1a2b;
-    color: white;
+    margin: 0;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    margin: 0;
+    background: linear-gradient(-45deg, #1a1a6b, #4b00ff, #120046, #2e0b73);
+    background-size: 400% 400%;
+    animation: gradientMove 15s ease infinite;
+    overflow: hidden;
+    color: #fff;
   }
+
   h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+    font-size: 3em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    color: #8c77ff;
+    text-shadow: 0 0 10px #8c77ff, 0 0 20px #8c77ff, 0 0 30px #8c77ff;
+    animation: glow 2s ease-in-out infinite alternate;
   }
-  .time, .countdown {
-    font-size: 1.8em;
-    margin: 8px 0;
+
+  @keyframes glow {
+    from { text-shadow: 0 0 10px #8c77ff, 0 0 20px #8c77ff, 0 0 30px #8c77ff; }
+    to { text-shadow: 0 0 20px #b3a0ff, 0 0 40px #b3a0ff, 0 0 60px #b3a0ff; }
   }
+
+  .card {
+    background: rgba(0, 0, 50, 0.25);
+    border: 2px solid #8c77ff;
+    border-radius: 20px;
+    padding: 25px 40px;
+    margin: 15px 0;
+    text-align: center;
+    box-shadow: 0 0 20px #8c77ff50, 0 0 40px #8c77ff30 inset;
+    backdrop-filter: blur(10px);
+    animation: slideIn 1s ease forwards;
+  }
+
+  @keyframes slideIn {
+    0% { transform: translateY(-50px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .time {
+    font-size: 2em;
+    margin: 10px 0;
+    color: #a0a0ff;
+  }
+
   .status {
-    font-size: 1.4em;
-    color: #00e0ff;
+    font-size: 1.6em;
+    margin: 8px 0;
+    color: #8c77ff;
+    text-shadow: 0 0 8px #8c77ff;
   }
-  .late {
-    color: #ff3b3b;
+
+  .status.late {
+    color: #ff4bff;
+    text-shadow: 0 0 10px #ff4bff, 0 0 20px #ff4bff;
   }
-  .class {
-    color: #6df76d;
+
+  .countdown {
+    font-size: 1.5em;
+    margin: 8px 0;
+    color: #77f7ff;
+    text-shadow: 0 0 8px #77f7ff;
+  }
+
+  .countdown.late {
+    color: #ff4bff;
+  }
+
+  .neon-span {
+    text-shadow: 0 0 5px #77f7ff, 0 0 10px #77f7ff, 0 0 20px #77f7ff;
+    color: #77f7ff;
   }
 </style>
 </head>
 <body>
   <h1>School Schedule Timer</h1>
-  <div class="time" id="localTime">Loading...</div>
-  <div class="status" id="statusText"></div>
-  <div class="countdown" id="countdownText"></div>
+
+  <div class="card">
+    <div class="time" id="localTime">Loading...</div>
+    <div class="status" id="statusText"></div>
+    <div class="countdown" id="countdownText"></div>
+  </div>
 
 <script>
-  // Define your schedule (in 24-hour time)
-  const schedule = [
-    { name: "1st Period", start: "08:00", end: "09:27" },
-    { name: "Enrichment", start: "09:30", end: "10:00" },
-    { name: "2nd Period", start: "10:03", end: "11:27" },
-    { name: "Lunch", start: "11:35", end: "12:01" },
-    { name: "3rd Period", start: "12:04", end: "13:30" },
-    { name: "4th Period", start: "13:33", end: "15:00" }
-  ];
+const schedule = [
+  { name: "1st Period", start: "08:00", end: "09:27" },
+  { name: "Enrichment", start: "09:30", end: "10:00" },
+  { name: "2nd Period", start: "10:03", end: "11:27" },
+  { name: "Lunch", start: "11:35", end: "12:01" },
+  { name: "3rd Period", start: "12:04", end: "13:30" },
+  { name: "4th Period", start: "13:33", end: "15:00" }
+];
 
-  function getTimeInMinutes(timeStr) {
-    const [h, m] = timeStr.split(":").map(Number);
-    return h * 60 + m;
+function getTimeInMinutes(timeStr) {
+  const [h, m] = timeStr.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}m ${s < 10 ? "0"+s : s}s`;
+}
+
+function updateClock() {
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes() + now.getSeconds()/60;
+  document.getElementById("localTime").textContent = "🕒 Local Time: " + now.toLocaleTimeString();
+
+  let currentPeriod = null;
+  let nextPeriod = null;
+
+  for (let i=0; i<schedule.length; i++) {
+    const start = getTimeInMinutes(schedule[i].start);
+    const end = getTimeInMinutes(schedule[i].end);
+    if(currentTime >= start && currentTime < end) {
+      currentPeriod = schedule[i];
+      nextPeriod = schedule[i+1];
+      break;
+    } else if(currentTime < start) {
+      nextPeriod = schedule[i];
+      break;
+    }
   }
 
-  function updateClock() {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
-    document.getElementById("localTime").textContent = 
-      "Local Time: " + now.toLocaleTimeString();
+  const statusText = document.getElementById("statusText");
+  const countdownText = document.getElementById("countdownText");
 
-    let currentPeriod = null;
-    let nextPeriod = null;
-
-    // Find current and next periods
-    for (let i = 0; i < schedule.length; i++) {
-      const start = getTimeInMinutes(schedule[i].start);
-      const end = getTimeInMinutes(schedule[i].end);
-      if (currentTime >= start && currentTime < end) {
-        currentPeriod = schedule[i];
-        nextPeriod = schedule[i + 1];
-        break;
-      } else if (currentTime < start) {
-        nextPeriod = schedule[i];
-        break;
-      }
-    }
-
-    const statusText = document.getElementById("statusText");
-    const countdownText = document.getElementById("countdownText");
-
-    if (currentPeriod) {
-      // In a class
-      const end = getTimeInMinutes(currentPeriod.end);
-      const remaining = Math.floor((end - currentTime) * 60);
-      statusText.innerHTML = `🟢 In <span class="class">${currentPeriod.name}</span>`;
-      countdownText.textContent = `Time left in class: ${formatTime(remaining)}`;
-      countdownText.classList.remove("late");
-    } else if (nextPeriod) {
-      // Passing time countdown
-      const start = getTimeInMinutes(nextPeriod.start);
-      const remaining = Math.floor((start - currentTime) * 60);
-      if (remaining <= 0) {
-        statusText.textContent = "⚠️ You are late!";
-        countdownText.textContent = "";
-        countdownText.classList.add("late");
-      } else {
-        statusText.innerHTML = `⏳ Passing time before <span class="class">${nextPeriod.name}</span>`;
-        countdownText.textContent = `Time until class starts: ${formatTime(remaining)}`;
-        countdownText.classList.remove("late");
-      }
-    } else {
-      // After school
-      statusText.textContent = "🏁 School day is over!";
+  if(currentPeriod){
+    const end = getTimeInMinutes(currentPeriod.end);
+    const remaining = Math.floor((end - currentTime) * 60);
+    statusText.innerHTML = `🟢 In <span class="neon-span">${currentPeriod.name}</span>`;
+    countdownText.textContent = `Time left in class: ${formatTime(remaining)}`;
+    countdownText.classList.remove("late");
+    statusText.classList.remove("late");
+  } else if(nextPeriod){
+    const start = getTimeInMinutes(nextPeriod.start);
+    const remaining = Math.floor((start - currentTime) * 60);
+    if(remaining <= 0){
+      statusText.textContent = "⚠️ You are late!";
       countdownText.textContent = "";
+      statusText.classList.add("late");
+      countdownText.classList.add("late");
+    } else {
+      statusText.innerHTML = `⏳ Passing time before <span class="neon-span">${nextPeriod.name}</span>`;
+      countdownText.textContent = `Time until class starts: ${formatTime(remaining)}`;
+      statusText.classList.remove("late");
       countdownText.classList.remove("late");
     }
+  } else {
+    statusText.textContent = "🏁 School day is over!";
+    countdownText.textContent = "";
+    statusText.classList.remove("late");
+    countdownText.classList.remove("late");
   }
+}
 
-  function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}m ${s < 10 ? "0" + s : s}s`;
-  }
-
-  setInterval(updateClock, 1000);
-  updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 </script>
 </body>
 </html>
